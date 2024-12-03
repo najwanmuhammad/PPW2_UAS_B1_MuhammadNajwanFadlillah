@@ -11,12 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema:create('transaksi', function (Blueprint $table) {
+        Schema::create('transaksi', function (Blueprint $table) {
             $table->id();
             $table->date('tanggal_pembelian');
             $table->integer('total_harga');
             $table->integer('bayar');
             $table->integer('kembalian');
+            $table->timestamps(); // Menambahkan kolom created_at dan updated_at
+            $table->softDeletes(); // Menambahkan kolom deleted_at untuk soft deletes
         });
     }
 
