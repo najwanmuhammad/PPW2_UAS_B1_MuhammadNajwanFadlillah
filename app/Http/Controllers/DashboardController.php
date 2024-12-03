@@ -9,9 +9,11 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        // Contoh: Mengambil jumlah transaksi dari model Transaksi
         $transaksi_count = Transaksi::count();
+        $item_terjual = Transaksi::sum('jumlah_item'); // Misalnya jumlah item dijual
+        $omzet = Transaksi::sum('total'); // Misalnya total omzet
 
-        return view('dashboard', ['transaksi_count' => $transaksi_count]);
+        return view('dashboard', compact('transaksi_count', 'item_terjual', 'omzet'));
     }
+
 }
