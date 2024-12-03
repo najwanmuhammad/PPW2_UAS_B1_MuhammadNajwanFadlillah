@@ -26,38 +26,42 @@ class TransaksiController extends Controller
         $request->validate([
             'tanggal_pembelian' => 'required|date',
             'bayar' => 'required|numeric',
-            'nama_produk1' => 'required|string',
-            'harga_satuan1' => 'required|numeric',
-            'jumlah1' => 'required|numeric',
-            'nama_produk2' => 'required|string',
-            'harga_satuan2' => 'required|numeric',
-            'jumlah2' => 'required|numeric',
-            'nama_produk3' => 'required|string',
-            'harga_satuan3' => 'required|numeric',
-            'jumlah3' => 'required|numeric',
+            'nama_produk.*' => 'required|string',
+            'harga_satuan.*' => 'required|numeric',
+            'jumlah.*' => 'required|numeric',
         ]);
 
-        // Gunakan transaction
+        DB::beginTransaction();
         try {
+            // Simpan transaksi
+            $transaksi = new Transaksi();
             $transaksi->tanggal_pembelian = $request->input('tanggal_pembelian');
-            $transaksi->total_harga = 0;
+            $transaksi->total_harga = 0; // Akan diupdate setelah perhitungan subtotal
             $transaksi->bayar = $request->input('bayar');
-            $transaksi->kembalian = 0;
+            $transaksi->kembalian = 0; // Akan diupdate setelah perhitungan
             $transaksi->save();
 
+            // Simpan detail transaksi
             $total_harga = 0;
-            for (){
-                $transaksidetail->id_transaksi = $transaksi->id;
-                $transaksidetail->nama_produk = $request->input('nama_produk'.$i);
-                $transaksidetail->harga_satuan = $request->input('harga_satuan'.$i);
-                $transaksidetail->jumlah = $request->input('jumlah'.$i);
-                $transaksidetail->subtotal = $request->input('harga_satuan'.$i)*$request->input('jumlah'.$i);
-                $total_harga += $transaksidetail->subtotal;
-            }
-            $transaksi->total_harga = $total_harga;
-            $transaksi->kembalian =
+            foreach ($request->input('nama_produk') as $index => $nama_produk) {
+                $transaksiDetail = new TransaksiDetail();
+                $transaksiDetail->id_transaksi = $transaksi->id;
+                $transaksiDetail->nama_produk = $nama_produk;
+                $transaksiDetail->harga_satuan = $request->input('harga_satuan')[$index];
+                $transaksiDetail->jumlah = $request->input('jumlah')[$index];
+                $transaksiDetail->subtotal = $transaksiDetail->harga_satuan * $transaksiDetail->jumlah;
+                $transaksiDetail->save();
 
-            return redirect('transaksidetail/'.$transaksi->id)->with('pesan', 'Berhasil menambahkan data');
+                $total_harga += $transaksiDetail->subtotal;
+            }
+
+            // Update total harga dan kembalian
+            $transaksi->total_harga = $total_harga;
+            $transaksi->kembalian = $request->input('bayar') - $total_harga;
+            $transaksi->save();
+
+            DB::commit();
+            return redirect('/transaksi')->with('pesan', 'Berhasil menambahkan data');
         } catch (\Exception $e) {
             DB::rollback();
             return redirect()->back()->withErrors(['Transaction' => 'Gagal menambahkan data'])->withInput();
