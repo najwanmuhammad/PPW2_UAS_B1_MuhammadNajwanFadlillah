@@ -21,27 +21,31 @@ class TransaksiDetailSeeder extends Seeder
         $transaksi = Transaksi::all();
 
         foreach ($transaksi as $t) {
-            $numberOfDetails = // gunakan faker untuk membuat angka antara 5 - 15
+            // Tentukan jumlah detail produk acak antara 5 hingga 15
+            $numberOfDetails = $faker->numberBetween(5, 15);
             $total_harga = 0;
 
             for ($j = 0; $j < $numberOfDetails; $j++) {
-                $hargaSatuan = $faker->numberBetween(10, 500) * 100;
-                $jumlah = $faker->numberBetween(1, 5);
-                $subtotal = $hargaSatuan * $jumlah;
-                $total_harga += $subtotal;
+                $hargaSatuan = $faker->numberBetween(10, 500) * 100; // Harga satuan antara 1.000 hingga 50.000
+                $jumlah = $faker->numberBetween(1, 5); // Jumlah produk per transaksi
+                $subtotal = $hargaSatuan * $jumlah; // Menghitung subtotal
+                $total_harga += $subtotal; // Menambahkan subtotal ke total_harga
 
-                TransaksiDetail:create([
+                // Simpan detail transaksi
+                TransaksiDetail::create([
                     'id_transaksi' => $t->id,
                     'nama_produk' => $faker->productName,
                     'harga_satuan' => $hargaSatuan,
                     'jumlah' => $jumlah,
-                    'subtotal'
+                    'subtotal' => $subtotal, // Menggunakan subtotal
                 ]);
             }
 
+            // Update total harga transaksi, bayar dan kembalian
             $t->total_harga = $total_harga;
-            $t->bayar = ceil($total_harga/50000) * 50000;
-            $t->kembalian = $t->bayar - $total_harga
+            $t->bayar = ceil($total_harga / 50000) * 50000; // Bayar adalah kelipatan 50.000
+            $t->kembalian = $t->bayar - $total_harga; // Menghitung kembalian
+            $t->save(); // Simpan perubahan pada transaksi
         }
     }
 }
