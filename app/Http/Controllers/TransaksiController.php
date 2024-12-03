@@ -88,10 +88,12 @@ class TransaksiController extends Controller
         return redirect('/transaksi')->with('pesan', 'Berhasil mengubah data');
     }
 
-    public function destroy()
+
+    public function destroy($id)
     {
         $transaksi = Transaksi::findOrFail($id);
+        $transaksi->delete();
 
-        return redirect('/transaksi');
+        return redirect('/transaksi')->with('pesan', 'Berhasil menghapus data');
     }
 }
