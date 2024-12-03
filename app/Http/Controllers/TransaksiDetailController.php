@@ -20,8 +20,7 @@ class TransaksiDetailController extends Controller
     public function detail(Request $request)
     {
         $transaksi = Transaksi::with('transaksidetail')->findOrFail($request->id_transaksi);
-
-        return view('transaksidetail.detail', );
+        return view('transaksidetail.detail', compact('transaksi'));
     }
 
     public function edit($id)
