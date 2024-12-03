@@ -21,13 +21,14 @@
                     <input type="date" class="form-control" name="tanggal_pembelian" value="{{ old('tanggal_pembelian') }}" required>
                 </div>
             </div>
+
             <h6>Produk yang dibeli</h6>
             <div class="accordion mb-4" id="accordionItem">
-                @for ($i = 1; $i <= 3; $i++)
+                @for ($i = 0; $i < 3; $i++)
                 <div class="accordion-item">
                     <h2 class="accordion-header">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#item{{ $i }}" aria-expanded="false" aria-controls="item{{ $i }}">
-                            Item #{{ $i }}
+                            Item #{{ $i + 1 }}
                         </button>
                     </h2>
                     <div id="item{{ $i }}" class="accordion-collapse collapse" data-bs-parent="#accordionItem">
@@ -35,27 +36,27 @@
                             <div class="d-flex flex-column gap-4 mb-4">
                                 <div class="form-group">
                                     <label>Nama Produk</label>
-                                    <input type="text" class="form-control" name="nama_produk{{ $i }}" value="{{ old('nama_produk'.$i) }}" required>
+                                    <input type="text" class="form-control" name="nama_produk[]" value="{{ old('nama_produk.'.$i) }}" required>
                                 </div>
                                 <div class="form-group">
                                     <label>Harga Satuan</label>
                                     <div class="input-group mb-3">
                                         <span class="input-group-text">Rp</span>
-                                        <input type="number" class="form-control" name="harga_satuan{{ $i }}" value="{{ old('harga_satuan'.$i) }}" required>
+                                        <input type="number" class="form-control" name="harga_satuan[]" value="{{ old('harga_satuan.'.$i) }}" required>
                                     </div>
                                 </div>
                                 <div class="form-group">
                                     <label>Jumlah</label>
                                     <div class="input-group mb-3">
                                         <span class="input-group-text">Qty</span>
-                                        <input type="number" class="form-control" name="jumlah{{ $i }}" value="{{ old('jumlah'.$i) }}" required>
+                                        <input type="number" class="form-control" name="jumlah[]" value="{{ old('jumlah.'.$i) }}" required>
                                     </div>
                                 </div>
                                 <div class="form-group">
                                     <label>Subtotal</label>
                                     <div class="input-group mb-3">
                                         <span class="input-group-text">Rp</span>
-                                        <input type="text" class="form-control" name="subtotal{{ $i }}" value="{{ old('subtotal'.$i) }}" readonly>
+                                        <input type="text" class="form-control" name="subtotal[]" value="0" readonly>
                                     </div>
                                 </div>
                             </div>
@@ -91,41 +92,42 @@
     </div>
 </div>
 
-{{--customjs--}}
+{{-- Custom JS --}}
 <script>
-    $(document).ready(function() {
-        let subtotals = {
-            subtotal1: 0,
-            subtotal2: 0,
-            subtotal3: 0
-        };
+    $(document).ready(function () {
+        // Calculate subtotal for each product
+        function calculateSubtotal(index) {
+            const hargaSatuan = parseInt($(`input[name="harga_satuan[]"]`).eq(index).val()) || 0;
+            const jumlah = parseInt($(`input[name="jumlah[]"]`).eq(index).val()) || 0;
+            const subtotal = hargaSatuan * jumlah;
 
-        function calculateSubtotal(item) {
-            const hargaSatuan = parseInt($('input[name="harga_satuan' + item + '"]').val()) || 0;
-            const jumlah = parseInt($('input[name="jumlah' + item + '"]').val()) || 0;
-            subtotals['subtotal' + item] = hargaSatuan * jumlah;
-            $('input[name="subtotal' + item + '"]').val(subtotals['subtotal' + item]);
-            const totalHarga = Object.values(subtotals).reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+            $(`input[name="subtotal[]"]`).eq(index).val(subtotal);
+
+            // Calculate total harga
+            let totalHarga = 0;
+            $('input[name="subtotal[]"]').each(function () {
+                totalHarga += parseInt($(this).val()) || 0;
+            });
+
             $('input[name="total_harga"]').val(totalHarga);
         }
 
-        // Bind events to input fields for subtotal calculation
-        $('input[name="harga_satuan1"], input[name="jumlah1"]').on('input', function() {
-            calculateSubtotal(1);
-        });
-        $('input[name="harga_satuan2"], input[name="jumlah2"]').on('input', function() {
-            calculateSubtotal(2);
-        });
-        $('input[name="harga_satuan3"], input[name="jumlah3"]').on('input', function() {
-            calculateSubtotal(3);
-        });
-
-        // Calculate kembalian when bayar is updated
-        $('input[name="bayar"]').on('input', function() {
+        // Calculate kembalian
+        function calculateKembalian() {
             const totalHarga = parseInt($('input[name="total_harga"]').val()) || 0;
             const bayar = parseInt($('input[name="bayar"]').val()) || 0;
             const kembalian = bayar - totalHarga;
+
             $('input[name="kembalian"]').val(kembalian);
+        }
+
+        // Bind events for calculating subtotal
+        $('input[name="harga_satuan[]"], input[name="jumlah[]"]').on('input', function () {
+            const index = $(this).closest('.accordion-item').index();
+            calculateSubtotal(index);
         });
+
+        // Bind event for calculating kembalian
+        $('input[name="bayar"]').on('input', calculateKembalian);
     });
 </script>

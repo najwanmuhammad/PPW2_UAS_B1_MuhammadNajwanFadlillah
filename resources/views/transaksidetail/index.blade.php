@@ -16,7 +16,7 @@
             </tr>
             </thead>
             <tbody>
-            @foreach ($details as $index => $data)
+            @foreach ($transaksidetail as $index => $data)
                 <tr>
                     <td>{{ $index + 1 }}</td>
                     <td>{{ \Carbon\Carbon::parse($data->transaksi->tanggal)->format('d/m/Y') }}</td>
