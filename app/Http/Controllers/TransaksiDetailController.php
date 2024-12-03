@@ -63,15 +63,27 @@ class TransaksiDetailController extends Controller
         }
     }
 
-    public function destroy()
+    public function destroy($id)
     {
-        $transaksidetail = TransaksiDetail::findOrFail($id);
+        DB::beginTransaction();
+        try {
+            $transaksidetail = TransaksiDetail::findOrFail($id);
 
-        $transaksi = Transaksi::with('transaksidetail')->findOrFail($transaksidetail->id_transaksi);
-        $transaksi->total_harga = sum subtotal;
-        $transaksi->kembalian = bayar - total_harga;
-        $transaksi->save();
+            // Hapus detail transaksi
+            $transaksidetail->delete();
 
-        return redirect('transaksidetail/'.$transaksidetail->id_transaksi)->with('pesan', 'Berhasil menghapus data');
+            // Update total_harga dan kembalian pada transaksi
+            $transaksi = Transaksi::with('transaksidetail')->findOrFail($transaksidetail->id_transaksi);
+            $total_harga = $transaksi->transaksidetail->sum('subtotal');
+            $transaksi->total_harga = $total_harga;
+            $transaksi->kembalian = $transaksi->bayar - $total_harga;
+            $transaksi->save();
+
+            DB::commit();
+            return redirect('transaksidetail/' . $transaksidetail->id_transaksi)->with('pesan', 'Berhasil menghapus data');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return redirect()->back()->withErrors(['Transaction' => 'Gagal menghapus data']);
+        }
     }
 }
