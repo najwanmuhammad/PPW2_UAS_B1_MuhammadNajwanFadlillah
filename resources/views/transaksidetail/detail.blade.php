@@ -40,34 +40,42 @@
             </tr>
             </thead>
             <tbody>
-            @foreach ($transaksi->details as $index => $data)
+            @if ($transaksi->details && $transaksi->details->isNotEmpty())
+                @foreach ($transaksi->details as $index => $data)
+                    <tr>
+                        <td>{{ $index + 1 }}</td>
+                        <td>{{ \Carbon\Carbon::parse($data->tanggal)->format('d/m/Y') }}</td>
+                        <td>{{ $data->nama_produk }}</td>
+                        <td class="text-end">{{ number_format($data->harga_satuan, 0, ',', '.') }}</td>
+                        <td class="text-end">{{ number_format($data->jumlah, 0, ',', '.') }}</td>
+                        <td class="text-end">{{ number_format($data->subtotal, 0, ',', '.') }}</td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <a href="{{ route('transaksidetail.edit', $data->id) }}" class="btn btn-warning btn-sm">Edit</a>
+                                <form action="{{ route('transaksidetail.destroy', $data->id) }}" method="POST">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button onclick="return confirm('Yakin mau dihapus?')" type="submit" class="btn btn-danger btn-sm">Hapus</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                @endforeach
+            @else
                 <tr>
-                    <td>{{ $index + 1 }}</td>
-                    <td>{{ \Carbon\Carbon::parse($data->tanggal)->format('d/m/Y') }}</td>
-                    <td>{{ $data->nama_produk }}</td>
-                    <td class="text-end">{{ number_format($data->harga_satuan, 0, ',', '.') }}</td>
-                    <td class="text-end">{{ number_format($data->jumlah, 0, ',', '.') }}</td>
-                    <td class="text-end">{{ number_format($data->subtotal, 0, ',', '.') }}</td>
-                    <td>
-                        <div class="d-flex gap-2">
-                            <a href="{{ route('transaksidetail.edit', $data->id) }}" class="btn btn-warning btn-sm">Edit</a>
-                            <form action="{{ route('transaksidetail.destroy', $data->id) }}" method="POST">
-                                @csrf
-                                @method('DELETE')
-                                <button onclick="return confirm('Yakin mau dihapus?')" type="submit" class="btn btn-danger btn-sm">Hapus</button>
-                            </form>
-                        </div>
-                    </td>
+                    <td colspan="7" class="text-center">Tidak ada detail transaksi</td>
                 </tr>
-            @endforeach
+            @endif
             </tbody>
-            <tfoot>
-            <tr>
-                <th colspan="5">Total</th>
-                <th class="text-end">{{ number_format($transaksi->details->sum('subtotal'), 0, ',', '.') }}</th>
-                <th></th>
-            </tr>
-            </tfoot>
+            @if ($transaksi->details && $transaksi->details->isNotEmpty())
+                <tfoot>
+                <tr>
+                    <th colspan="5">Total</th>
+                    <th class="text-end">{{ number_format($transaksi->details->sum('subtotal'), 0, ',', '.') }}</th>
+                    <th></th>
+                </tr>
+                </tfoot>
+            @endif
         </table>
     </div>
 </div>
