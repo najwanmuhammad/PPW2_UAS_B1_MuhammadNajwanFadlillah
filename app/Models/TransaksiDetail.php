@@ -12,6 +12,7 @@ class TransaksiDetail extends Model
     use SoftDeletes;
 
     protected $table = 'transaksi_detail';
+    protected $dates = ['tanggal_pembelian'];
 
     protected $fillable = [
         'id_transaksi',

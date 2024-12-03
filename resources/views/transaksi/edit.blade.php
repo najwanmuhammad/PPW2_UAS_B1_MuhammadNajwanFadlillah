@@ -20,7 +20,7 @@
                 <div class="form-group">
                     <label>Tanggal Pembelian</label>
                     <input type="date" class="form-control" name="tanggal_pembelian"
-                        value="{{ old('tanggal_pembelian', $transaksi->tanggal_pembelian->format('Y-m-d')) }}" required disabled>
+                        value="{{ old('tanggal_pembelian', date('Y-m-d', strtotime($transaksi->tanggal_pembelian))) }}" required disabled>
                 </div>
                 <div class="form-group">
                     <label>Harga Total</label>
